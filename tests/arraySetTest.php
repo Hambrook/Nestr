@@ -29,8 +29,6 @@ class arraySetTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testSetNestedMagic() {
-		$this->markTestIncomplete("This test has not been implemented yet.");
-
 		$Nestr = new Nestr([]);
 		// Invalid, 1 level
 		$Nestr->one->two = "four";

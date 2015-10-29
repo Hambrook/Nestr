@@ -8,10 +8,6 @@ namespace Hambrook\Nestr;
 	Finish docblocks
 	Organising of functions
 	Functions to add
-		_sort
-		_append
-		_plus
-		_minus
 		_first
 		_count
 		_walk
@@ -25,7 +21,7 @@ namespace Hambrook\Nestr;
  *
  * @package    Nestr
  *
- * @version    0.0.1
+ * @version    1.0.0
  *
  * @author     Rick Hambrook <rick@rickhambrook.com>
  * @copyright  2015 Rick Hambrook
@@ -48,9 +44,11 @@ class Nestr extends \ArrayObject {
 
 	private $_ = [
 		"data"         => null,
+		"parent"       => false,
 		"isSet"        => false,
 		"isCollection" => false,
 		"isArray"      => false,
+		"isNumeric"    => false,
 		"isObject"     => false
 	];
 
@@ -76,7 +74,7 @@ class Nestr extends \ArrayObject {
 	 *
 	 * @return  mixed         Raw value from $key
 	 */
-	public function _data($data=[]) {
+	public function _data($data=[], $debug=false) {
 		if (!func_num_args()) {
 			return $this->_nestrToArray();
 		}
@@ -118,19 +116,23 @@ class Nestr extends \ArrayObject {
 	 * @return  $this           This
 	 */
 	public function _set($key, $value=[]) {
-		$this->_["isSet"] = true;
+		if ($value instanceof self && !$value->_isSet()) {
+			return $this;
+		}
 		if (!$this->_isObject()) {
 			if (!$this->_isArray()) {
 				$this->_["data"] = [];
 			}
 			if (is_array($value)) {
 				$this->_["data"][$key] = new self($value);
+				$this->_["data"][$key]->_setParent($this);
 			} else {
 				$this->_["data"][$key] = $value;
 			}
 		} else {
 			if (is_array($value)) {
 				$this->_["data"]->$key = new self($value);
+				$this->_["data"]->$key->_setParent($this);
 			} else {
 				$this->_["data"]->$key = $value;
 			}
@@ -151,13 +153,12 @@ class Nestr extends \ArrayObject {
 	 */
 	public function _has($key) {
 		// https://ilia.ws/archives/247-Performance-Analysis-of-isset-vs-array_key_exists.html
-		return (
-			$this->_isSet() &&
-			(
-				($this->_isArray() && isset($this->_["data"][$key])) ||
-				($this->_isObject() && isset($this->_["data"]->$key))
-			)
-		);
+		if (!$this->_isSet()) { return false; }
+		if ($this->_isArray() && !isset($this->_["data"][$key])) { return false; }
+		if ($this->_isObject() && isset($this->_["data"]->$key) && $this->_["data"]->$key instanceof self) {
+			return $this->_["data"]->$key->_isSet();
+		}
+		return true;
 	}
 
 	/**
@@ -203,6 +204,17 @@ class Nestr extends \ArrayObject {
 	}
 
 	/**
+	 * _ISNumeric
+	 *
+	 * Is the current dataset numeric?
+	 *
+	 * @return  bool  True if data is an object
+	 */
+	public function _isNumeric() {
+		return $this->_["isNumeric"];
+	}
+
+	/**
 	 * _ISOBJECT
 	 *
 	 * Is the current dataset an object?
@@ -222,6 +234,237 @@ class Nestr extends \ArrayObject {
 	 */
 	public function _isSet() {
 		return $this->_["isSet"];
+	}
+
+
+	/*************************************************************************
+	 *  GENERIC HELPER FUNCTIONS                                             *
+	 *************************************************************************/
+
+	/**
+	 * _KEYS
+	 *
+	 * Get a list of valid keys
+	 *
+	 * @return  array  Array of keys for the dataset
+	 */
+	public function _keys() {
+		if ($this->_isArray()) {
+			return array_keys($this->_["data"]);
+		}
+		if ($this->_isObject()) {
+			return array_merge(
+				get_object_vars($this->_["data"]),
+				get_class_methods($this->_["data"])
+			);
+		}
+		return [];
+	}
+
+
+	/*************************************************************************
+	 *  NUMERIC HELPER FUNCTIONS                                             *
+	 *************************************************************************/
+
+	/**
+	 * _PLUS
+	 *
+	 * Increment the numerical value at the specified path, by the specified amount
+	 *
+	 * @param   string  $key      The key for the value to increase
+	 * @param   float   $value    The amount to increment by
+	 * @param   float   $default  Default value to start with if existing value isn't numeric
+	 *
+	 * @return  $this             Return self, for chaining
+	 */
+	public function _plus($key, $value=1, $default=0) {
+		if (!$this->_has($key)) {
+			$this->_set($key, $default);
+		}
+		$tmp = $this->_get($key);
+		if (!is_numeric($tmp)) {
+			// if no manual default was set, then don't override an existing non-numeric value
+			if (func_num_args() < 3) {
+				return $this;
+			}
+			$tmp = $default;
+		}
+		$tmp = $tmp + $value;
+		$this->_set($key, $tmp);
+
+		return $this;
+	}
+
+	/**
+	 * _MINUS
+	 *
+	 * Decrease the numerical value at the specified path, by the specified amount
+	 *
+	 * @param   string  $key      The key for the value to decrease
+	 * @param   float   $value    The amount to decrease by
+	 * @param   float   $default  Default value to start with if existing value isn't numeric
+	 *
+	 * @return  $this            Return self, for chaining
+	 */
+	public function _minus($key, $value=1, $default=0) {
+		if (!$this->_has($key)) {
+			$this->_set($key, $default);
+		}
+		$tmp = $this->_get($key);
+		if (!is_numeric($tmp)) {
+			// if no manual default was set, then don't override an existing non-numeric value
+			if (func_num_args() < 3) {
+				return $this;
+			}
+			$tmp = $default;
+		}
+		$tmp = $tmp - $value;
+		$this->_set($key, $tmp);
+
+		return $this;
+	}
+
+
+	/*************************************************************************
+	 *  JSON HELPER FUNCTIONS                                                *
+	 *************************************************************************/
+
+	/**
+	 * TOJSON
+	 *
+	 * Generate JSON and return it
+	 *
+	 * @param   bool    $pretty  Whether to pretty print or not
+	 *
+	 * @return  string           The generated JSON
+	 */
+	public function _toJSON($pretty=true) {
+		return json_encode($this->_nestrToArray(), ($pretty) ? JSON_PRETTY_PRINT : 0);
+	}
+
+	/**
+	 * LOADJSON
+	 *
+	 * Generate dataset from JSON
+	 *
+	 * @param   string  $json  The JSON string to decode and load
+	 *
+	 * @return  $this          This
+	 */
+	public function _loadJSON($json) {
+		$this->_data(@json_decode($json, true));
+		return $this;
+	}
+
+
+	/*************************************************************************
+	 *  ARRAY HELPER FUNCTIONS                                               *
+	 *************************************************************************/
+
+	/**
+	 * _APPEND
+	 *
+	 * Append data (arrays only at present)
+	 *
+	 * @param   mixed         $value  New new value to append
+	 * @param   mixed         $force  Force the value to be an array, even if it's not
+	 *
+	 * @return  $this                 Return self, for chaining
+	 */
+	public function _append($value=null, $force=true) {
+		if (!$this->_isArray()) {
+			if (!$force) {
+				return $this;
+			}
+			$this->_["data"] = [];
+		}
+		$this->_["data"][] = $value;
+
+		return $this;
+	}
+
+	/**
+	 * _COUNT
+	 *
+	 * Count the items at the path
+	 *
+	 * @param   int           $default  The amount to return if invalid
+	 *
+	 * @return  $this                   Return self, for chaining
+	 */
+	public function _count($default=0) {
+		if ($this->_isArray()) {
+			return count($this->_["data"]);
+		}
+		if ($this->_isObject()) {
+			return count(
+				array_merge(
+					get_object_vars($this->_["data"]),
+					get_class_methods($this->_["data"])
+				)
+			);
+		}
+
+		return count($tmp);
+	}
+
+	/**
+	 * _MERGE
+	 *
+	 * Merge data (arrays only at present)
+	 *
+	 * @param   array         $value  New new array to merge in
+	 * @param   bool          $force  Force the value to be an array, even if it's not
+	 *
+	 * @return  $this                 Return self, for chaining
+	 */
+	public function _merge($value=[], $force=true) {
+		if (!is_array($value) || !count($value)) {
+			return $this;
+		}
+		$tmp = $this->_["data"];
+		if (!$this->_isArray()) {
+			if (!$force) {
+				return $this;
+			}
+			$tmp = [];
+		}
+		$tmp = array_merge($tmp, $value);
+		return $this->_data($tmp);
+	}
+
+	/**
+	 * _SORT
+	 *
+	 * Sort an array by sort method
+	 *
+	 * @param   string           $method           Optional sort method
+	 * @param   callable|string  $flagsOrCallable  Optional flags or callback
+	 *
+	 * @return  $this                              Return self, for chaining
+	 */
+	public function _sort($method="", $flagsOrCallable=false) {
+		$data = $this->_data();
+		$tmp = &$data;
+
+		if (!$this->_isArray()) {
+			return $this;
+		}
+
+		if (!is_callable($method)) {
+			$method = $method."sort";
+		}
+		if (!is_callable($method)) {
+			return $this;
+		}
+
+		$params = [&$tmp];
+		if ($flagsOrCallable) {
+			$params[] = $flagsOrCallable;
+		}
+		call_user_func_array($method, $params);
+
+		return $this->_data($tmp)->_getParent();
 	}
 
 
@@ -253,22 +496,6 @@ class Nestr extends \ArrayObject {
 	 *************************************************************************/
 
 	/**
-	 * _UPDATETYPE
-	 *
-	 * Update the data type values
-	 *
-	 * @internal
-	 *
-	 * @return    bool  True if data is an array or object
-	 */
-	private function _updateType() {
-		$this->_["isArray"] = is_array($this->_["data"]);
-		$this->_["isObject"] = is_object($this->_["data"]);
-		$this->_["isCollection"] = ($this->_["isArray"] || $this->_["isObject"]);
-		return $this;
-	}
-
-	/**
 	 * _GETACTUAL
 	 *
 	 * Internal get function to manage raw/default complexities
@@ -282,22 +509,44 @@ class Nestr extends \ArrayObject {
 	 * @return  $this|mixed       True if data is an array or object
 	 */
 	private function _getActual($key, $raw=false, $default=null) {
+		// Are we getting a numeric key?
+		if (strpos($key, "__") === 0) {
+			$key = -1 * str_replace("_", "", $key);
+		}
+		if (strpos($key, "_") === 0) {
+			$key = 1 * str_replace("_", "", $key);
+		}
+
+		if ($raw && !$this->_has($key)) {
+			return $default;
+		}
+
 		if ($this->_isArray()) {
 			if ($raw) {
 				if (!isset($this->_["data"][$key])) { return $default; }
-				return ($this->_["data"][$key] instanceof self)
-					? $this->_["data"][$key]->_["data"]
-					: $this->_["data"][$key];
-			}
-			if (!isset($this->_["data"][$key])) {
-				return new self();
-			}
-			if ($this->_["data"][$key] instanceof self) {
+				if ($this->_["data"][$key] instanceof self) {
+					return ($this->_["data"][$key]->_isSet()) ? $this->_["data"][$key]->_data() : $default;
+				}
 				return $this->_["data"][$key];
 			}
-			return new self($this->_["data"][$key]);
+			if (!isset($this->_["data"][$key])) {
+				$this->_["data"][$key] = new self();
+				$this->_["data"][$key]->_setParent($this);
+			}
+			if (!$this->_["data"][$key] instanceof self) {
+				$this->_["data"][$key] = new self($this->_["data"][$key]);
+				$this->_["data"][$key]->_setParent($this);
+			}
+			return $this->_["data"][$key];
 		} else
 		if ($this->_isObject()) {
+			if ($raw) {
+				if (!isset($this->_["data"]->$key)) { return $default; }
+				if ($this->_["data"]->$key instanceof self) {
+					return ($this->_["data"]->$key->_isSet()) ? $this->_["data"]->$key->_data() : $default;
+				}
+				return $this->_["data"]->$key;
+			}
 			if ($raw) {
 				if (!isset($this->_["data"]->$key)) { return $default; }
 				return ($this->_["data"]->$key instanceof self)
@@ -306,6 +555,7 @@ class Nestr extends \ArrayObject {
 			}
 			if (!isset($this->_["data"]->$key)) {
 				$this->_["data"]->$key = new self();
+				$this->_["data"]->$key->_setParent($this);
 				$this->_updateType();
 				return $this->_["data"]->$key;
 			}
@@ -313,12 +563,79 @@ class Nestr extends \ArrayObject {
 				return $this->_["data"]->$key;
 			}
 			$this->_["data"]->$key = new self($this->_["data"]->$key);
+			$this->_["data"]->$key->_setParent($this);
 			return $this->_["data"]->$key;
 		}
 		if ($raw) {
-			return $default;
+			return ($this->_isSet()) ? $this->_["data"] : $default;
 		}
-		return new self();
+		if ($this->_isSet()) {
+			if ($raw) {
+				return $this->_["data"];
+			}
+			$this->_["data"]->$key = new self($this->_["data"]);
+			$this->_["data"]->$key->_setParent($this);
+			return $this->_["data"]->$key;
+		}
+		return ($raw) ? $default : (new self())->_setParent($this);
+	}
+
+	/**
+	 * _GETPARENT
+	 *
+	 * Get the parent object when nesting
+	 *
+	 * @internal
+	 *
+	 * @return  Nestr  Parent object
+	 */
+	public function _getParent() {
+		return ($this->_hasParent()) ? $this->_["parent"] : $this;
+	}
+
+	/**
+	 * _HASPARENT
+	 *
+	 * Check if we have a parent object
+	 *
+	 * @internal
+	 *
+	 * @return  bool  Whether or not we have a parent object
+	 */
+	public function _hasParent() {
+		return ($this->_["parent"] instanceof self);
+	}
+
+	/**
+	 * _SETPARENT
+	 *
+	 * Set the parent object when nesting
+	 *
+	 * @internal
+	 * @param   Nestr  $Nestr  Nestr object to set a s parent
+	 *
+	 * @return  $this          $this
+	 */
+	public function _setParent($Nestr) {
+		$this->_["parent"] = $Nestr;
+		return $this;
+	}
+
+	/**
+	 * _UPDATETYPE
+	 *
+	 * Update the data type values
+	 *
+	 * @internal
+	 *
+	 * @return  bool  True if data is an array or object
+	 */
+	private function _updateType() {
+		$this->_["isArray"] = is_array($this->_["data"]);
+		$this->_["isObject"] = is_object($this->_["data"]);
+		$this->_["isNumeric"] = is_numeric($this->_["data"]);
+		$this->_["isCollection"] = ($this->_["isArray"] || $this->_["isObject"]);
+		return $this;
 	}
 
 
@@ -335,6 +652,19 @@ class Nestr extends \ArrayObject {
 	 */
 	public function getIterator() {
 		return new \ArrayIterator($this->_["data"]);
+	}
+
+	/**
+	 * OFFSETEXISTS
+	 *
+	 * Check if an offset is set
+	 *
+	 * @param   string  $key  Key to check
+	 *
+	 * @return  bool          True if offset exists
+	 */
+	public function offsetExists($key) {
+		return $this->_has($key);
 	}
 
 	/**
@@ -365,19 +695,6 @@ class Nestr extends \ArrayObject {
 	}
 
 	/**
-	 * OFFSETEXISTS
-	 *
-	 * Check if an offset is set
-	 *
-	 * @param   string  $key  Key to check
-	 *
-	 * @return  bool          True if offset exists
-	 */
-	public function offsetExists($key) {
-		return $this->_has($key);
-	}
-
-	/**
 	 * OFFSETUNSET
 	 *
 	 * Unset the value at an offset
@@ -388,6 +705,37 @@ class Nestr extends \ArrayObject {
 	 */
 	public function offsetUnset($key) {
 		return $this->_unset($key);
+	}
+
+
+	/*************************************************************************
+	 *  SERIALIZE FUNCTIONS                                                  *
+	 *************************************************************************/
+
+	/**
+	 * SERIALIZE
+	 *
+	 * Serialize data within the object
+	 *
+	 * @return  string  The serialized data ready for storage
+	 */
+	public function serialize() {
+		return serialize($this->_nestrToArray());
+	}
+
+	/**
+	 * UNSERIALIZE
+	 *
+	 * Restore serialized data
+	 *
+	 * @param   string  $data  Data to restore to the object
+	 *
+	 * @return  $this          This with data unserialized and set
+	 */
+	public function unserialize($data) {
+		$this->_["data"] = unserialize($data);
+		$this->_updateType();
+		return $this;
 	}
 
 
@@ -406,15 +754,10 @@ class Nestr extends \ArrayObject {
 	 * @return  mixed          The raw value from the offset, or default if not set 
 	 */
 	public function __call($key, $args=[]) {
-		switch(count($args)) {
-			// Get raw, no default
-			case 0:
-				return $this->_getActual($key, true);
-
-			// Get raw, with default
-			default:
-				return $this->_getActual($key, true, $args[0]);
+		if (count($args)) {
+			return $this->_getActual($key, true, $args[0]);
 		}
+		return $this->_getActual($key, true);
 	}
 
 	/**
@@ -474,35 +817,6 @@ class Nestr extends \ArrayObject {
 	 */
 	public function __unset($key) {
 		$this->_unset($key);
-	}
-
-
-	/*************************************************************************
-	 *  SERIALIZE FUNCTIONS                                                  *
-	 *************************************************************************/
-
-	/**
-	 * SERIALIZE
-	 *
-	 * Serialize data within the object
-	 *
-	 * @return  string  The serialized data ready for storage
-	 */
-	public function serialize() {
-		return serialize($this->_nestrToArray());
-	}
-
-	/**
-	 * UNSERIALIZE
-	 *
-	 * Restore serialized data
-	 *
-	 * @param   string  $data  Data to restore to the object
-	 */
-	public function unserialize($data) {
-		$this->_["data"] = unserialize($data);
-		$this->_updateType();
-		return $this;
 	}
 
 }

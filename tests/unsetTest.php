@@ -45,8 +45,6 @@ class unsetTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testUnset() {
-		$this->markTestIncomplete("This test has not been implemented yet.");
-
 		$Nestr = new Nestr();
 		$Nestr->_data($this->data);
 

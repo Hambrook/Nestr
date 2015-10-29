@@ -70,7 +70,7 @@ $Nestr->one->four = "five";
 ```
 
 ##Who is it for?
-Nestr is for working with arrays and objects were you aren't always sure of the data. It works great with the [Config](https://github.com/Hambrook/Config) class for storing configuration data for other classes or CLI scripts. But it can be used anywhere.
+Nestr is for working with arrays and objects were you aren't always sure of the data. It works great with CLI scripts. But it can be used anywhere.
 
 ##Where are the exceptions?
 Nestr doesn't throw any exceptions, that's the rule. Nestr was designed to fail gracefully with default values instead of using exceptions.
