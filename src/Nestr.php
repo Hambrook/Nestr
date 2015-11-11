@@ -5,11 +5,8 @@ namespace Hambrook\Nestr;
 /*
 	TODO
 
-	Finish docblocks
-	Organising of functions
 	Functions to add
 		_first
-		_count
 		_walk
 		_filter
 */
@@ -21,7 +18,7 @@ namespace Hambrook\Nestr;
  *
  * @package    Nestr
  *
- * @version    1.0.0
+ * @version    1.0.1
  *
  * @author     Rick Hambrook <rick@rickhambrook.com>
  * @copyright  2015 Rick Hambrook
@@ -57,7 +54,7 @@ class Nestr extends \ArrayObject {
 	 *
 	 * Get or set the entire dataset
 	 *
-	 * @param   mixed  $data  Data to store for management
+	 * @param  mixed  $data  Data to store for management
 	 */
 	public function __construct($data=[]) {
 		if (func_num_args()) {
@@ -74,19 +71,12 @@ class Nestr extends \ArrayObject {
 	 *
 	 * @return  mixed         Raw value from $key
 	 */
-	public function _data($data=[], $debug=false) {
+	public function _data($data=[]) {
 		if (!func_num_args()) {
 			return $this->_nestrToArray();
 		}
 		$this->_["isSet"] = true;
-		if (is_array($data)) {
-			$this->_["data"] = [];
-			foreach ($data as $k => $v) {
-				$this->_set($k, $v);
-			}
-		} else {
-			$this->_["data"] = $data;
-		}
+		$this->_["data"] = $data;
 		$this->_updateType();
 		return $this;
 	}
@@ -123,19 +113,9 @@ class Nestr extends \ArrayObject {
 			if (!$this->_isArray()) {
 				$this->_["data"] = [];
 			}
-			if (is_array($value)) {
-				$this->_["data"][$key] = new self($value);
-				$this->_["data"][$key]->_setParent($this);
-			} else {
-				$this->_["data"][$key] = $value;
-			}
+			$this->_["data"][$key] = $value;
 		} else {
-			if (is_array($value)) {
-				$this->_["data"]->$key = new self($value);
-				$this->_["data"]->$key->_setParent($this);
-			} else {
 				$this->_["data"]->$key = $value;
-			}
 		}
 		$this->_["isSet"] = true;
 		$this->_updateType();
@@ -145,7 +125,7 @@ class Nestr extends \ArrayObject {
 	/**
 	 * _HAS
 	 *
-	 * Effectively ISSET
+	 * Effectively isset
 	 *
 	 * @param   string  $key  Key to check
 	 *
@@ -366,10 +346,10 @@ class Nestr extends \ArrayObject {
 	 *
 	 * Append data (arrays only at present)
 	 *
-	 * @param   mixed         $value  New new value to append
-	 * @param   mixed         $force  Force the value to be an array, even if it's not
+	 * @param   mixed  $value  New new value to append
+	 * @param   mixed  $force  Force the value to be an array, even if it's not
 	 *
-	 * @return  $this                 Return self, for chaining
+	 * @return  $this          Return self, for chaining
 	 */
 	public function _append($value=null, $force=true) {
 		if (!$this->_isArray()) {
@@ -388,9 +368,9 @@ class Nestr extends \ArrayObject {
 	 *
 	 * Count the items at the path
 	 *
-	 * @param   int           $default  The amount to return if invalid
+	 * @param   int    $default  The amount to return if invalid
 	 *
-	 * @return  $this                   Return self, for chaining
+	 * @return  $this            Return self, for chaining
 	 */
 	public function _count($default=0) {
 		if ($this->_isArray()) {
@@ -413,10 +393,10 @@ class Nestr extends \ArrayObject {
 	 *
 	 * Merge data (arrays only at present)
 	 *
-	 * @param   array         $value  New new array to merge in
-	 * @param   bool          $force  Force the value to be an array, even if it's not
+	 * @param   array  $value  New new array to merge in
+	 * @param   bool   $force  Force the value to be an array, even if it's not
 	 *
-	 * @return  $this                 Return self, for chaining
+	 * @return  $this          Return self, for chaining
 	 */
 	public function _merge($value=[], $force=true) {
 		if (!is_array($value) || !count($value)) {
