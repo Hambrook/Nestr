@@ -18,7 +18,7 @@ namespace Hambrook\Nestr;
  *
  * @package    Nestr
  *
- * @version    1.0.1
+ * @version    1.0.2
  *
  * @author     Rick Hambrook <rick@rickhambrook.com>
  * @copyright  2015 Rick Hambrook
@@ -101,7 +101,7 @@ class Nestr extends \ArrayObject {
 	 * Set a value
 	 *
 	 * @param   string  $key    Key to set
-	 * @param   string  $value  New value
+	 * @param   mixed   $value  New value
 	 *
 	 * @return  $this           This
 	 */
