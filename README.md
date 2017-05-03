@@ -1,4 +1,4 @@
-#Nestr
+# Nestr
 
 [![Build Status](https://travis-ci.org/Hambrook/Nestr.svg?branch=master)](https://travis-ci.org/Hambrook/Nestr)
 
@@ -10,7 +10,7 @@ You can get and set nested values. You can iterate over them with `foreach`. The
 
 Nestr is the successor to [Nest](https://github.com/Hambrook/Nest).
 
-####Why do this...
+#### Why do this...
 ```php
 // need to get $array["one"]["two"]
 if (array_key_exists("one", $array) && array_key_exists("two", $array["one"])) {
@@ -18,7 +18,7 @@ if (array_key_exists("one", $array) && array_key_exists("two", $array["one"])) {
 }
 ```
 
-####When you could do this?
+#### When you could do this?
 ```php
 // need to get $array["one"]["two"]
 $value = $array->one->two();
@@ -27,7 +27,7 @@ You don't have to worry about any key checks, or checking if things are set... J
 
 Note the parentheses at the end, this triggers a fetch of the raw value (with an optional parameter for default) instead of the wrapper object.
 
-##Example
+## Example
 ```php
 $Nestr = new \Hambrook\Nestr\Nestr(
 	[
@@ -39,60 +39,60 @@ $Nestr = new \Hambrook\Nestr\Nestr(
 );
 ```
 
-####Get a top-level value
+#### Get a top-level value
 ```php
 $Nestr->foo(); // note the parentheses at the end
 // "bar"
 ```
 
-####We're going two levels in this time
+#### We're going two levels in this time
 ```php
 $Nestr->one->two();
 // "three"
 ```
 
-####What if we try to get something that isn't there? Does it error?
+#### What if we try to get something that isn't there? Does it error?
 ```php
 $Nestr->nope->two();
 // returns `null`, not an error
 ```
 
-####Or we can specify our own default in case of error
+#### Or we can specify our own default in case of error
 ```php
 $value = $Nestr->nope->two("safe");
 // returns "safe", not an error
 ```
 
-####Need to set a value? No problem
+#### Need to set a value? No problem
 ```php
 $Nestr->one->four = "five";
 // sets value to "five" (recursively creating levels as needed)
 ```
 
-##Who is it for?
+## Who is it for?
 Nestr is for working with arrays and objects were you aren't always sure of the data. It works great with CLI scripts. But it can be used anywhere.
 
-##Where are the exceptions?
+## Where are the exceptions?
 Nestr doesn't throw any exceptions, that's the rule. Nestr was designed to fail gracefully with default values instead of using exceptions.
 
-##What about the performance hit?
+## What about the performance hit?
 Although Nestr can be used anywhere, it was built primarily for CLI apps where milliseconds don't matter. I've kept speed in mind but it's not a primary concern. At some point I will add benchmarks and timing and see how much I can shave off the execution time.
 
-##Testing
+## Testing
 Install PHPUnit globally, then run it on the `tests/` directory.
 
-##Feedback
+## Feedback
 Tell me if you loved it. Tell me if you hated it. Tell me if you used it and thought "meh". I'm keen to hear your feedback.
 
-##Contributing
+## Contributing
 Feel free to fork this project and submit pull requests, or even just request features via the issue tracker. Please be descriptive with pull requests and match the existing code style.
 
-##Roadmap
+## Roadmap
 * Add any other standard documentation that should be included
 * Maybe add a parameter to get() that allows specifying a validator callback
 * _If you have an idea, [let me know](https://github.com/Hambrook/Nestr/issues)._
 
-##License
+## License
 Copyright &copy; 2015 Rick Hambrook
 
 This program is free software: you can redistribute it and/or modify
