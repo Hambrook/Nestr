@@ -11,7 +11,7 @@ use \Hambrook\Nestr\Nestr as Nestr;
  * @copyright  2015 Rick Hambrook
  * @license    https://www.gnu.org/licenses/gpl.txt  GNU General Public License v3
  */
-class arrayHelpersTest extends PHPUnit_Framework_TestCase {
+class arrayHelpersTest extends PHPUnit\Framework\TestCase {
 
 	private $data = [
 		"foo" => "bar",
@@ -22,16 +22,19 @@ class arrayHelpersTest extends PHPUnit_Framework_TestCase {
 
 	public function testCreateAppend() {
 		$Nestr = new Nestr($this->data);
+		$this->assertInstanceOf("\Hambrook\Nestr\Nestr", $Nestr);
 		return $Nestr;
 	}
 
 	public function testCreateCount() {
 		$Nestr = new Nestr($this->data);
+		$this->assertInstanceOf("\Hambrook\Nestr\Nestr", $Nestr);
 		return $Nestr;
 	}
 
 	public function testCreateMerge() {
 		$Nestr = new Nestr($this->data);
+		$this->assertInstanceOf("\Hambrook\Nestr\Nestr", $Nestr);
 		return $Nestr;
 	}
 
