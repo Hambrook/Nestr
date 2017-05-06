@@ -11,7 +11,7 @@ use \Hambrook\Nestr\Nestr as Nestr;
  * @copyright  2015 Rick Hambrook
  * @license    https://www.gnu.org/licenses/gpl.txt  GNU General Public License v3
  */
-class sortTest extends PHPUnit_Framework_TestCase {
+class sortTest extends PHPUnit\Framework\TestCase {
 
 	private $data = [
 		"foo" => "bar",

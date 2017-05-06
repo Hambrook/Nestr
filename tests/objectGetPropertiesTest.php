@@ -11,10 +11,11 @@ use \Hambrook\Nestr\Nestr as Nestr;
  * @copyright  2015 Rick Hambrook
  * @license    https://www.gnu.org/licenses/gpl.txt  GNU General Public License v3
  */
-class objectGetPropertiesTest extends PHPUnit_Framework_TestCase {
+class objectGetPropertiesTest extends PHPUnit\Framework\TestCase {
 
 	public function testCreate() {
 		$Nestr = new Nestr(new objectGetPropertiesTestData);
+		$this->assertInstanceOf("\Hambrook\Nestr\Nestr", $Nestr);
 		return $Nestr;
 	}
 

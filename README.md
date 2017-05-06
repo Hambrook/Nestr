@@ -79,7 +79,7 @@ Nestr doesn't throw any exceptions, that's the rule. Nestr was designed to fail 
 Although Nestr can be used anywhere, it was built primarily for CLI apps where milliseconds don't matter. I've kept speed in mind but it's not a primary concern. At some point I will add benchmarks and timing and see how much I can shave off the execution time.
 
 ## Testing
-Install PHPUnit globally, then run it on the `tests/` directory.
+Install PHPUnit 6+ globally, then run it on the `tests/` directory.
 
 ## Feedback
 Tell me if you loved it. Tell me if you hated it. Tell me if you used it and thought "meh". I'm keen to hear your feedback.
